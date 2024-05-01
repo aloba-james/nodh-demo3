@@ -2,6 +2,17 @@ from schema import User, Group
 import authentication
 from mysql.connector import connect, Error
 from api import db_password, db_user
+import base64
+from controllers_dir import filelist_controller, datasets_controller, recording_controller
+
+
+def get_controllers():
+    return {
+        'filelistcontroller': filelist_controller.FileListController,
+        'datasetscontroller': datasets_controller.DatasetController,
+        'recordingcontroller': recording_controller.RecordingController
+    }
+
 
 def authenticate_user(username, password):
     return authentication.authenticate_user(username, password)
@@ -11,27 +22,24 @@ def register_user(username, password):
 
 def create_group_schema():
     try:
-        connection = connect(
+        with connect(
             host='localhost',
             user=db_user,
             password=db_password,
-            database='demo3db'  
-        )
+            database='demo3db'
+        ) as connection:
+            with connection.cursor() as cursor:
+                create_table_query = """
+                CREATE TABLE IF NOT EXISTS groups (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(255) NOT NULL
+                )"""
 
-        cursor = connection.cursor()
+                # Execute the SQL command
+                cursor.execute(create_table_query)
+                connection.commit()
 
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS groups (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(255) NOT NULL
-        )
-        """
-
-        # Execute the SQL command
-        cursor.execute(create_table_query)
-        connection.commit()
-
-        print("Group schema created successfully.")
+                print("Group schema created successfully.")
 
     except Error as e:
         print("Error creating group schema:", e)
