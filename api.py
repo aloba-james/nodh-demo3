@@ -24,7 +24,7 @@ except Error as e:
 
 
 class APIServer(BaseHTTPRequestHandler):
-  
+
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
@@ -55,6 +55,28 @@ class APIServer(BaseHTTPRequestHandler):
                 self.end_headers()
                 response = {'error': 'Failed to register user'}
 
+        # to create a group
+        elif path == '/create_group':
+            group_name = data.get('group_name')
+            usernames = data.get('usernames', [])
+            existing_usernames = [
+                username for username in usernames if controllers.get_user_by_username(username)]
+            if len(existing_usernames) == len(usernames):
+                group = controllers.create_group(
+                    group_name, existing_usernames)
+                if group:
+                    response = {'message': 'Group created successfully',
+                                'group': {'id': group.id, 'name': group.name}}
+                else:
+                    self.send_response(500)
+                    self.end_headers()
+                    response = {'error': 'Failed to create group'}
+            else:
+                self.send_response(400)
+                self.end_headers()
+                response = {'error': 'Invalid usernames provided'}
+
+                
         if response:
             self.send_response(200)
             self.send_header('Content-type', 'application/json')

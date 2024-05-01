@@ -1,6 +1,6 @@
 import mysql.connector
 from mysql.connector import connect, Error
-from user_schema import User
+from schema import User
 import getpass 
 from api import db_password, db_user
 
@@ -73,3 +73,5 @@ def register_user(username, password):
         if connection.is_connected():
             cursor.close()
             connection.close()
+
+
